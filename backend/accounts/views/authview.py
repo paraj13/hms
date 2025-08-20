@@ -34,7 +34,14 @@ class UserListView(APIView):
     allowed_roles = ['management']
 
     def get(self, request):
-        users = User.objects.all()
+        # Get role from query params
+        role = request.GET.get("role")
+
+        if role:
+            users = User.objects(role=role)
+        else:
+            users = User.objects.all()
+        
         serializer = UserListSerializer(users, many=True)
         return success_response(data=serializer.data, message="Users fetched successfully")
 
@@ -77,7 +84,7 @@ class LoginUserView(APIView):
     def post(self, request):
         serializer = UserLoginSerializer(data=request.data)
         if serializer.is_valid():
-            user = serializer.validated_data['user']
+            user = serializer.validated_data["user"]
 
             access_token = generate_access_token(user)
             refresh_token = generate_refresh_token(user)
@@ -94,13 +101,17 @@ class LoginUserView(APIView):
                 },
                 message="Login successful"
             )
-        return error_response(message="Validation failed", errors=serializer.errors, status_code=400)
+
+        return error_response(
+            message="Validation failed",
+            errors=serializer.errors,
+            status_code=400
+        )
 
 
 # -------------------- LOGOUT --------------------
 class LogoutUserView(APIView):
-    authentication_classes = [JWTAuthentication]
-
+    
     def post(self, request):
         refresh_token = request.data.get("refresh_token")
         if not refresh_token:
@@ -112,3 +123,19 @@ class LogoutUserView(APIView):
 
         token_entry.delete()
         return success_response(message="Logout successful, refresh token revoked")
+
+class DashboardView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [RolePermission]
+    allowed_roles = ['management']
+
+    def get(self, request):
+        total_users = User.objects.count()
+       
+
+        data = {
+            "total_users": total_users,
+           
+        }
+
+        return success_response(message="Dashboard data fetched successfully", data=data)

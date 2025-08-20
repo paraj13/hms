@@ -8,9 +8,16 @@ class UserLoginSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
-        user = User.objects(email=attrs['email']).first()
-        if not user or not user.check_password(attrs['password']):
-            raise serializers.ValidationError("Invalid credentials.")
+        email = attrs.get('email')
+        password = attrs.get('password')
+        print(email, password)
+        user = User.objects(email=email).first()
+        if not user or not user.check_password(password):
+            raise serializers.ValidationError({
+                "non_field_errors": ["Invalid credentials."]
+            })
+
+        # Attach the user object to validated data
         attrs['user'] = user
         return attrs
 
