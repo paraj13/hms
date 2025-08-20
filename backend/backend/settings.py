@@ -49,6 +49,8 @@ INSTALLED_APPS = [
 'rest_framework',
 'rest_framework_simplejwt',
 'accounts.apps.AccountsConfig',
+    'rest_framework_simplejwt.token_blacklist',
+
 
 
 ]
@@ -141,3 +143,11 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
 }
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "sandbox.smtp.mailtrap.io"  # MailTrap SMTP Host
+EMAIL_PORT = 2525  # Port (587 is standard for TLS)
+EMAIL_USE_TLS = True  # Use TLS for security
+EMAIL_HOST_USER = "6b8f974fac9770"  # Your MailTrap username
+EMAIL_HOST_PASSWORD = "a7b8e8be5248cd"  # Your MailTrap password
+DEFAULT_FROM_EMAIL = "info@coderscotch.com"  # Sender email
