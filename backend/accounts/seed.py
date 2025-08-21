@@ -1,4 +1,5 @@
 # backend/accounts/seed.py
+# python -m accounts.seed   
 import os
 import django
 

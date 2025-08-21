@@ -1,6 +1,9 @@
 from rest_framework import serializers
 from .models import User
 from django.contrib.auth.hashers import make_password
+import random
+import string
+
 
 # -------------------- LOGIN --------------------
 class UserLoginSerializer(serializers.Serializer):
@@ -21,27 +24,39 @@ class UserLoginSerializer(serializers.Serializer):
         attrs['user'] = user
         return attrs
 
-
 # -------------------- CREATE --------------------
 class UserCreateSerializer(serializers.Serializer):
     username = serializers.CharField(required=True)
     email = serializers.EmailField(required=True)
-    password = serializers.CharField(write_only=True)
     mobile_no = serializers.CharField(required=True)
     city = serializers.CharField(required=False, allow_blank=True)
-    role = serializers.ChoiceField(choices=('management', 'staff', 'guest'), default='guest')
+    role = serializers.ChoiceField(choices=('management', 'hotel-staff', 'guest'), default='guest')
 
     def validate_email(self, value):
         if User.objects(email=value).first():
             raise serializers.ValidationError("Email already exists.")
         return value
 
+    # def generate_random_password(self, length=10):
+    #     chars = string.ascii_letters + string.digits + string.punctuation
+    #     return ''.join(random.choice(chars) for _ in range(length))
+    def generate_random_password(self, length=10):
+    # Temporary static password for testing
+        return "admin@123"
+
     def create(self, validated_data):
-        validated_data['password'] = make_password(validated_data['password'])
+        # Generate random password
+        raw_password = self.generate_random_password()
+
+        # Hash password before saving
+        validated_data['password'] = make_password(raw_password)
+
         user = User(**validated_data)
         user.save()
-        return user
 
+        # Optionally return raw password so you can send it to user via email/SMS
+        user.raw_password = raw_password
+        return user
 
 # -------------------- UPDATE --------------------
 class UserUpdateSerializer(serializers.Serializer):
@@ -56,7 +71,6 @@ class UserUpdateSerializer(serializers.Serializer):
             setattr(instance, field, value)
         instance.save()
         return instance
-
 
 # -------------------- LIST --------------------
 class UserListSerializer(serializers.Serializer):

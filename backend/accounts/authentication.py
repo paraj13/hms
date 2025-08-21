@@ -1,8 +1,9 @@
 import jwt
 from rest_framework.authentication import BaseAuthentication
 from rest_framework import exceptions
-from django.conf import settings
 from .models import User
+from django.conf import settings
+
 
 SECRET_KEY = settings.SECRET_KEY
 
