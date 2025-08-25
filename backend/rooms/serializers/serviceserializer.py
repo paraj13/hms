@@ -4,6 +4,7 @@ from ..models import Service
 class ServiceSerializer(serializers.Serializer):
     id = serializers.CharField(read_only=True)
     name = serializers.CharField(required=True, max_length=100)
+    category = serializers.CharField(required=True, max_length=100)
     description = serializers.CharField(allow_blank=True, required=False)
     price = serializers.FloatField(required=True)
     is_active = serializers.BooleanField(default=True)
@@ -26,6 +27,7 @@ class ServiceSerializer(serializers.Serializer):
 
     def update(self, instance, validated_data):
         instance.name = validated_data.get("name", instance.name)
+        instance.category = validated_data.get("category", instance.category)
         instance.description = validated_data.get("description", instance.description)
         instance.price = validated_data.get("price", instance.price)
         instance.is_active = validated_data.get("is_active", instance.is_active)

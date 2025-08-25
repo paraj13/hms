@@ -10,7 +10,7 @@ from backend.utils.response import success_response, error_response   # <-- impo
 class ServiceListCreateView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [RolePermission]
-    allowed_roles = ['management']
+    allowed_roles = ['management', 'staff', 'guest']
 
     def get(self, request):
         services = Service.objects()

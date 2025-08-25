@@ -1,84 +1,79 @@
+# backend/rooms/views.py
 from rest_framework.views import APIView
-from rest_framework.parsers import MultiPartParser, FormParser
 from accounts.permissions import RolePermission
 from accounts.authentication import JWTAuthentication
 from backend.utils.response import success_response, error_response
 from ..models import Room
-from ..serializers.roomserializers import RoomCreateSerializer, RoomUpdateSerializer, RoomListSerializer
+from ..serializers.roomserializers import (
+    RoomCreateSerializer,
+    RoomUpdateSerializer,
+    RoomListSerializer,
+)
 
-class RoomCreateView(APIView):
+
+class RoomListCreateView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [RolePermission]
-    allowed_roles = ['management']
-    # parser_classes = [MultiPartParser, FormParser]
-
-    def post(self, request):
-        serializer = RoomCreateSerializer(data=request.data, context={"request": request})
-        if serializer.is_valid():
-            room = serializer.create(serializer.validated_data)
-            return success_response(RoomListSerializer().to_representation(room), "Room created successfully", 201)
-        return error_response("Validation error", serializer.errors)
-
-class RoomListView(APIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [RolePermission]
-    allowed_roles = ['management', 'guest']
+    allowed_roles = ['management', 'staff', 'guest']  # 👈 everyone can list, but only mgmt/staff can create
 
     def get(self, request):
         rooms = Room.objects.all()
         data = [RoomListSerializer().to_representation(r) for r in rooms]
-        return success_response(data)
+        return success_response(data, "Rooms fetched successfully")
+
+    def post(self, request):
+        if request.user.role not in ['management', 'staff']:
+            return error_response("Permission denied", status_code=403)
+
+        serializer = RoomCreateSerializer(data=request.data, context={"request": request})
+        if serializer.is_valid():
+            room = serializer.save()
+            return success_response(
+                RoomListSerializer().to_representation(room),
+                "Room created successfully",
+                201
+            )
+        return error_response("Validation error", serializer.errors)
 
 
 class RoomDetailView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [RolePermission]
-    allowed_roles = ['management', 'guest']
-    
+    allowed_roles = ['management', 'staff', 'guest']
+
+    def get_object(self, room_id):
+        return Room.objects(id=room_id).first()
+
     def get(self, request, room_id):
-        room = Room.objects(id=room_id).first()
+        room = self.get_object(room_id)
         if not room:
             return error_response("Room not found", 404)
-        return success_response(RoomListSerializer().to_representation(room))
-
-
-class RoomUpdateView(APIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [RolePermission]
-    allowed_roles = ['management']
-    # parser_classes = [MultiPartParser, FormParser]
+        return success_response(RoomListSerializer().to_representation(room), "Room details fetched successfully")
 
     def put(self, request, room_id):
-        room = Room.objects(id=room_id).first()
+        if request.user.role not in ['management', 'staff']:
+            return error_response("Permission denied", 403)
+
+        room = self.get_object(room_id)
         if not room:
             return error_response("Room not found", 404)
+
         serializer = RoomUpdateSerializer(room, data=request.data, partial=True, context={"request": request})
         if serializer.is_valid():
-            updated_room = serializer.update(room, serializer.validated_data)
-            return success_response(RoomListSerializer().to_representation(updated_room), "Room updated successfully")
+            updated_room = serializer.save()
+            return success_response(
+                RoomListSerializer().to_representation(updated_room),
+                "Room updated successfully"
+            )
         return error_response("Validation error", serializer.errors)
 
-
-class RoomDeleteView(APIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [RolePermission]
-    allowed_roles = ['management', 'guest']
-    
     def delete(self, request, room_id):
-        room = Room.objects(id=room_id).first()
+        if request.user.role not in ['management', 'staff']:
+            return error_response("Permission denied", 403)
+
+        room = self.get_object(room_id)
         if not room:
             return error_response("Room not found", 404)
+
         room.delete()
-        return success_response(message="Room deleted successfully")
-
-
-# class RoomDetailView(APIView):
-#     authentication_classes = [JWTAuthentication]
-#     permission_classes = [RolePermission]
-#     allowed_roles = ['management', 'guest']
-    
-#     def get(self, request, room_id):
-#         room = Room.objects(id=room_id).first()
-#         if not room:
-#             return error_response("Room not found", 404)
-#         return success_response(RoomListSerializer().to_representation(room))
+        return success_response(message="Room deleted successfully", status_code=204)

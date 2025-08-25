@@ -26,6 +26,7 @@ class Room(Document):
 
 class Service(Document):
     name = StringField(required=True, unique=True)
+    category = StringField(required=True)
     description = StringField()
     price = FloatField(required=True)
     is_active = BooleanField(default=True)
@@ -41,6 +42,7 @@ class Service(Document):
         return {
             "id": str(self.id),
             "name": self.name,
+            "category": self.category,
             "description": self.description,
             "price": self.price,
             "is_active": self.is_active,
