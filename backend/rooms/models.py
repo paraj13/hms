@@ -1,0 +1,49 @@
+from mongoengine import Document, StringField, FloatField, IntField, ListField, DateTimeField, BooleanField
+import datetime
+
+class Room(Document):
+    number = IntField(required=True, unique=True)
+    type = StringField(required=True, choices=['single', 'double', 'suite'])
+    status = StringField(required=True, choices=['available', 'booked', 'maintenance'], default='available')
+    price = FloatField(required=True)
+
+    cover_image = StringField(required=False)          
+    other_images = ListField(StringField(), default=[])
+
+    def to_dict(self):
+        return {
+            'id': str(self.id),
+            'number': self.number,
+            'type': self.type,
+            'status': self.status,
+            'price': self.price,
+            "cover_image": self.cover_image,
+            "other_images": self.other_images,
+            'created_at': self.created_at,
+            'updated_at': self.updated_at
+        }
+
+
+class Service(Document):
+    name = StringField(required=True, unique=True)
+    description = StringField()
+    price = FloatField(required=True)
+    is_active = BooleanField(default=True)
+
+    created_at = DateTimeField(default=datetime.datetime.utcnow)
+    updated_at = DateTimeField(default=datetime.datetime.utcnow)
+
+    def save(self, *args, **kwargs):
+        self.updated_at = datetime.datetime.utcnow()
+        return super(Service, self).save(*args, **kwargs)
+
+    def to_dict(self):
+        return {
+            "id": str(self.id),
+            "name": self.name,
+            "description": self.description,
+            "price": self.price,
+            "is_active": self.is_active,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
+        }

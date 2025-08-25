@@ -158,3 +158,8 @@ EMAIL_USE_TLS = True  # Use TLS for security
 EMAIL_HOST_USER = "6b8f974fac9770"  # Your MailTrap username
 EMAIL_HOST_PASSWORD = "a7b8e8be5248cd"  # Your MailTrap password
 DEFAULT_FROM_EMAIL = "info@coderscotch.com"  # Sender email
+
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
