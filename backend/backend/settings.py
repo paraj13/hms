@@ -163,3 +163,15 @@ DEFAULT_FROM_EMAIL = "info@coderscotch.com"  # Sender email
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
+# settings.py
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",   # your frontend
+    "http://127.0.0.1:3000",   # just in case
+]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+CORS_ALLOW_CREDENTIALS = True

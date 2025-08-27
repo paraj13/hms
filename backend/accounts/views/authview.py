@@ -46,9 +46,11 @@ class UserListView(APIView):
         role = request.GET.get("role")
 
         if role:
-            users = User.objects(role=role)
+            users = User.objects(role=role).order_by("-id")
+
         else:
-            users = User.objects.all()
+            users = User.objects.all().order_by("-id")
+
         
         serializer = UserListSerializer(users, many=True)
         return success_response(data=serializer.data, message="Users fetched successfully")

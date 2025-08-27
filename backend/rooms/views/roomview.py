@@ -17,7 +17,8 @@ class RoomListCreateView(APIView):
     allowed_roles = ['management', 'staff', 'guest']  # 👈 everyone can list, but only mgmt/staff can create
 
     def get(self, request):
-        rooms = Room.objects.all()
+        rooms = Room.objects.all().order_by("-id")
+
         data = [RoomListSerializer().to_representation(r) for r in rooms]
         return success_response(data, "Rooms fetched successfully")
 

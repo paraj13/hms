@@ -1,4 +1,4 @@
-from mongoengine import Document, StringField, FloatField, IntField, ListField, DateTimeField, BooleanField
+from mongoengine import Document, StringField, FloatField, IntField, ListField, DateTimeField, BooleanField, ReferenceField
 import datetime
 
 class Room(Document):
@@ -49,3 +49,16 @@ class Service(Document):
             "created_at": self.created_at,
             "updated_at": self.updated_at,
         }
+        
+class ServiceBooking(Document):
+    meta = {'collection': 'service_bookings'}
+    user = ReferenceField('User', required=True)  # direct reference to User
+    service = ReferenceField(Service, required=True)
+    booking_date = DateTimeField(default=datetime.datetime.utcnow)
+    date = StringField()
+    time = StringField()
+    notes = StringField()  # optional
+    status = StringField(default="pending")
+
+    def __str__(self):
+        return f"Booking {self.id} - User: {self.user.id} Service: {self.service.name}"
