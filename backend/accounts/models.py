@@ -10,7 +10,7 @@ class User(Document):
     mobile_no = StringField(required=True)
     city = StringField()
     role = StringField(choices=('management', 'hotel-staff', 'guest'), default='guest')
-
+    
     def set_password(self, raw_password):
         self.password = make_password(raw_password)
         self.save()

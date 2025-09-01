@@ -2,29 +2,33 @@ import os
 import speech_recognition as sr
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from .chatbot import get_dynamic_response
+
 
 @csrf_exempt
 def voice_to_text(request):
     try:
         if request.method == "POST":
-            # Check if audio file exists in request
-            if 'audio' not in request.FILES:
-                return JsonResponse({"error": "No audio file provided"}, status=400)
+            text_input = request.POST.get("text", None)
 
-            # Get uploaded file
-            audio_file = request.FILES['audio']
+            # If audio provided, convert to text
+            if "audio" in request.FILES:
+                audio_file = request.FILES["audio"]
+                r = sr.Recognizer()
+                with sr.AudioFile(audio_file) as source:
+                    audio_data = r.record(source)
+                text_input = r.recognize_google(audio_data)
 
-            # Initialize recognizer
-            r = sr.Recognizer()
+            if not text_input:
+                return JsonResponse({"error": "No input provided"}, status=400)
 
-            # Use AudioFile directly with Django InMemoryUploadedFile
-            with sr.AudioFile(audio_file) as source:
-                audio_data = r.record(source)
+            answer, action = get_dynamic_response(text_input)
 
-            # Convert to text
-            text = r.recognize_google(audio_data)
-
-            return JsonResponse({"transcription": text})
+            return JsonResponse({
+                "transcription": text_input,
+                "answer": answer,
+                "action": action
+            })
 
         return JsonResponse({"error": "Only POST method allowed"}, status=405)
 

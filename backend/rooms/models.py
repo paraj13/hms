@@ -1,12 +1,12 @@
 from mongoengine import Document, StringField, FloatField, IntField, ListField, DateTimeField, BooleanField, ReferenceField
 import datetime
+from backend.constants import STATUS_VALUES, ROOM_TYPES, MEAL_TYPES, DIET_TYPES, CUISINE_TYPES, SPICE_LEVELS
 
 class Room(Document):
     number = IntField(required=True, unique=True)
-    type = StringField(required=True, choices=['single', 'double', 'suite'])
-    status = StringField(required=True, choices=['available', 'booked', 'maintenance'], default='available')
+    type = StringField(required=True,choices=ROOM_TYPES)
+    status = StringField(required=True, choices=STATUS_VALUES, default='available')
     price = FloatField(required=True)
-
     cover_image = StringField(required=False)          
     other_images = ListField(StringField(), default=[])
 
@@ -30,7 +30,6 @@ class Service(Document):
     description = StringField()
     price = FloatField(required=True)
     is_active = BooleanField(default=True)
-
     created_at = DateTimeField(default=datetime.datetime.utcnow)
     updated_at = DateTimeField(default=datetime.datetime.utcnow)
 
@@ -62,3 +61,27 @@ class ServiceBooking(Document):
 
     def __str__(self):
         return f"Booking {self.id} - User: {self.user.id} Service: {self.service.name}"
+    
+class Meal(Document):
+    name = StringField(required=True, max_length=200)
+    category = StringField(required=True, max_length=200)
+    description = StringField()
+    currency = StringField(default="INR")
+    price = FloatField(required=True)
+    meal_type = StringField(choices=MEAL_TYPES, default="lunch")
+    diet_type = StringField(choices=DIET_TYPES, default="veg")
+    cuisine_type = StringField(choices=CUISINE_TYPES, default="other")
+    spice_level = StringField(choices=SPICE_LEVELS, default="medium")
+    status = BooleanField(default=True)  # available / not available
+    image = StringField()  # store image URL or path
+    created_at = DateTimeField(default=datetime.datetime.utcnow)
+    updated_at = DateTimeField(default=datetime.datetime.utcnow)
+    is_special = BooleanField(default=False)
+    rating = FloatField(default=0.0)
+    meta = {
+        "collection": "meals"
+    }
+
+    def save(self, *args, **kwargs):
+        self.updated_at = datetime.datetime.utcnow()
+        return super(Meal, self).save(*args, **kwargs)

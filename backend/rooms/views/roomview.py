@@ -10,7 +10,6 @@ from ..serializers.roomserializers import (
     RoomListSerializer,
 )
 
-
 class RoomListCreateView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [RolePermission]
@@ -23,6 +22,7 @@ class RoomListCreateView(APIView):
         return success_response(data, "Rooms fetched successfully")
 
     def post(self, request):
+        
         if request.user.role not in ['management', 'staff']:
             return error_response("Permission denied", status_code=403)
 
